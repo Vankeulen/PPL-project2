@@ -27,10 +27,10 @@ public class Lexer {
 		stack = new Stack<Token>();
 		lookahead = 0;  // indicates no lookahead symbol present
 	}// constructor
-	
+
 	public Lexer(BufferedReader input) {
 		this.input = input;
-		
+
 		stack = new Stack<Token>();
 		lookahead = 0;  // indicates no lookahead symbol present
 	}
@@ -140,16 +140,18 @@ public class Lexer {
 				if (data.equals("input")) {
 					return new Token("bif0", data);
 				} else if (data.equals("sqrt") || data.equals("cos")
-						|| data.equals("sin") || data.equals("atan")) {
+						|| data.equals("sin") || data.equals("atan") || data.equals("not")) {
 					return new Token("bif1", data);
-				} else if (data.equals("pow")) {
+				} else if (data.equals("pow") || data.equals("lt") || data.equals("le")
+				    || data.equals("eq") || data.equals("ne") || data.equals("or")
+						|| data.equals("and")) {
 					return new Token("bif2", data);
 				} else if (data.equals("print")) {
 					return new Token("print", "");
 				} else if (data.equals("newline")) {
 					return new Token("newline", "");
 				} else if (data.equals("def")) {
-					// added def keyword 
+					// added def keyword
 					return new Token("def", "");
 				} else if (data.equals("end")) {
 					// added end keyword
@@ -157,7 +159,7 @@ public class Lexer {
 				} else if (data.equals("return")) {
 					// added return keyword
 					return new Token("return", "");
-					
+
 				} else {// is just a variable
 					return new Token("var", data);
 				}
