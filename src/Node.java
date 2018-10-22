@@ -1,244 +1,362 @@
+package corgi;
+
 /*  a Node holds one node of a parse tree
     with several pointers to children used
     depending on the kind of node
-*/
-
+ */
 import java.util.*;
 import java.io.*;
 import java.awt.*;
 
 public class Node {
+	
+	// Added this type to hold runtime information.
+	public static class RuntimeEnv {
+		public MemTable table = new MemTable();
+		public Map<String, Node> funcDefs = new HashMap<>();
+	}
+	
+	public static int count = 0;  // maintain unique id for each node
 
-  public static int count = 0;  // maintain unique id for each node
+	private int id;
+	
+	public boolean isKind(String kind) { return kind.equals(this.kind); }
+	public String getInfo() { return this.info; }
+	
+	private String kind;  // non-terminal or terminal category for the node
+	private String info;  // extra information about the node such as
+	// the actual identifier for an I
 
-  private int id;
+	public Node getFirst() { return first; }
+	public Node getSecond() { return second; }
+	public Node getThird() { return third; }
+	
+	// references to children in the parse tree
+	private Node first, second, third;
 
-  private String kind;  // non-terminal or terminal category for the node
-  private String info;  // extra information about the node such as
-                        // the actual identifier for an I
+	// Added this global field to replace the previously global 'MemTable'
+	private static RuntimeEnv globalRuntime = new RuntimeEnv();
 
-  // references to children in the parse tree
-  private Node first, second, third; 
+	private static Scanner keys = new Scanner(System.in);
 
-  // memory table shared by all nodes
-  private static MemTable table = new MemTable();
+	// construct a common node with no info specified
+	public Node(String k, Node one, Node two, Node three) {
+		kind = k;
+		info = "";
+		first = one;
+		second = two;
+		third = three;
+		id = count;
+		count++;
+		System.out.println(this);
+	}
 
-  private static Scanner keys = new Scanner( System.in );
+	// construct a node with specified info
+	public Node(String k, String inf, Node one, Node two, Node three) {
+		kind = k;
+		info = inf;
+		first = one;
+		second = two;
+		third = three;
+		id = count;
+		count++;
+		System.out.println(this);
+	}
 
-  // construct a common node with no info specified
-  public Node( String k, Node one, Node two, Node three ) {
-    kind = k;  info = "";  
-    first = one;  second = two;  third = three;
-    id = count;
-    count++;
-    System.out.println( this );
-  }
+	// construct a node that is essentially a token
+	public Node(Token token) {
+		kind = token.getKind();
+		info = token.getDetails();
+		first = null;
+		second = null;
+		third = null;
+		id = count;
+		count++;
+		System.out.println(this);
+	}
 
-  // construct a node with specified info
-  public Node( String k, String inf, Node one, Node two, Node three ) {
-    kind = k;  info = inf;  
-    first = one;  second = two;  third = three;
-    id = count;
-    count++;
-    System.out.println( this );
-  }
+	public String toString() {
+		return "#" + id + "[" + kind + "," + info + "]<" + nice(first)
+				+ " " + nice(second) + ">";
+	}
 
-  // construct a node that is essentially a token
-  public Node( Token token ) {
-    kind = token.getKind();  info = token.getDetails();  
-    first = null;  second = null;  third = null;
-    id = count;
-    count++;
-    System.out.println( this );
-  }
+	public String nice(Node node) {
+		if (node == null) {
+			return "";
+		} else {
+			return "" + node.id;
+		}
+	}
 
-  public String toString() {
-    return "#" + id + "[" + kind + "," + info + "]<" + nice(first) + 
-              " " + nice(second) + ">";
-  }
+	// produce array with the non-null children
+	// in order
+	private Node[] getChildren() {
+		int count = 0;
+		if (first != null) {
+			count++;
+		}
+		if (second != null) {
+			count++;
+		}
+		if (third != null) {
+			count++;
+		}
+		Node[] children = new Node[count];
+		int k = 0;
+		if (first != null) {
+			children[k] = first;
+			k++;
+		}
+		if (second != null) {
+			children[k] = second;
+			k++;
+		}
+		if (third != null) {
+			children[k] = third;
+			k++;
+		}
 
-  public String nice( Node node ) {
-     if ( node == null ) {
-        return "";
-     }
-     else {
-        return "" + node.id;
-     }
-  }
+		return children;
+	}
 
-  // produce array with the non-null children
-  // in order
-  private Node[] getChildren() {
-    int count = 0;
-    if( first != null ) count++;
-    if( second != null ) count++;
-    if( third != null ) count++;
-    Node[] children = new Node[count];
-    int k=0;
-    if( first != null ) {  children[k] = first; k++; }
-    if( second != null ) {  children[k] = second; k++; }
-    if( third != null ) {  children[k] = third; k++; }
+	//******************************************************
+	// graphical display of this node and its subtree
+	// in given camera, with specified location (x,y) of this
+	// node, and specified distances horizontally and vertically
+	// to children
+	public void draw(Camera cam, double x, double y, double h, double v) {
 
-     return children;
-  }
+		System.out.println("draw node " + id);
 
-  //******************************************************
-  // graphical display of this node and its subtree
-  // in given camera, with specified location (x,y) of this
-  // node, and specified distances horizontally and vertically
-  // to children
-  public void draw( Camera cam, double x, double y, double h, double v ) {
+		// set drawing color
+		cam.setColor(Color.black);
 
-System.out.println("draw node " + id );
+		String text = kind;
+		if (!info.equals("")) {
+			text += "(" + info + ")";
+		}
+		cam.drawHorizCenteredText(text, x, y);
 
-    // set drawing color
-    cam.setColor( Color.black );
+		// positioning of children depends on how many
+		// in a nice, uniform manner
+		Node[] children = getChildren();
+		int number = children.length;
+		System.out.println("has " + number + " children");
 
-    String text = kind;
-    if( ! info.equals("") ) text += "(" + info + ")";
-    cam.drawHorizCenteredText( text, x, y );
+		double top = y - 0.75 * v;
 
-    // positioning of children depends on how many
-    // in a nice, uniform manner
-    Node[] children = getChildren();
-    int number = children.length;
-System.out.println("has " + number + " children");
+		if (number == 0) {
+			return;
+		} else if (number == 1) {
+			children[0].draw(cam, x, y - v, h / 2, v);
+			cam.drawLine(x, y, x, top);
+		} else if (number == 2) {
+			children[0].draw(cam, x - h / 2, y - v, h / 2, v);
+			cam.drawLine(x, y, x - h / 2, top);
+			children[1].draw(cam, x + h / 2, y - v, h / 2, v);
+			cam.drawLine(x, y, x + h / 2, top);
+		} else if (number == 3) {
+			children[0].draw(cam, x - h, y - v, h / 2, v);
+			cam.drawLine(x, y, x - h, top);
+			children[1].draw(cam, x, y - v, h / 2, v);
+			cam.drawLine(x, y, x, top);
+			children[2].draw(cam, x + h, y - v, h / 2, v);
+			cam.drawLine(x, y, x + h, top);
+		} else {
+			System.out.println("no Node kind has more than 3 children???");
+			System.exit(1);
+		}
 
-    double top = y - 0.75*v;
+	}// draw
 
-    if( number == 0 ) {
-      return;
-    }
-    else if( number == 1 ) {
-      children[0].draw( cam, x, y-v, h/2, v );     cam.drawLine( x, y, x, top );
-    }
-    else if( number == 2 ) {
-      children[0].draw( cam, x-h/2, y-v, h/2, v );     cam.drawLine( x, y, x-h/2, top );
-      children[1].draw( cam, x+h/2, y-v, h/2, v );     cam.drawLine( x, y, x+h/2, top );
-    }
-    else if( number == 3 ) {
-      children[0].draw( cam, x-h, y-v, h/2, v );     cam.drawLine( x, y, x-h, top );
-      children[1].draw( cam, x, y-v, h/2, v );     cam.drawLine( x, y, x, top );
-      children[2].draw( cam, x+h, y-v, h/2, v );     cam.drawLine( x, y, x+h, top );
-    }
-    else {
-      System.out.println("no Node kind has more than 3 children???");
-      System.exit(1);
-    }
+	public static void error(String message) {
+		System.out.println(message);
+		System.exit(1);
+	}
+	
+	// sets up the next environment with parameters.
+	// they are applied in order 
+	// between the args (first of this) and params (first of funcDef) sub nodes
+	private void setupParams(RuntimeEnv next, Node funcDef, RuntimeEnv prev){ 
+		Node params = funcDef.first;
+		Node args = first;
+		
+		while (args != null && params != null) {
+			Node arg = args.first;
+			args = args.second;
+			String param = params.info;
+			params = params.first;
+			double val = arg.evaluate(prev);
+			
+			System.out.println("Setting up param " + param + " = " + val);
+			next.table.store(param, val);
+		}
+		// Warn about mismatcher arg counts
+		if (params == null && args != null) {
+			System.out.println("WARNING: Mismatched parameters for call of " + info + ", too many args");
+		}
+		if (args == null && params != null) {
+			System.out.println("WARNING: Mismatched parameters for call of " + info + ", too few args");
+		}
+	}
+	
+	// Executes a function, returns the runtime env it used when done. 
+	// or null if the function did not exist.
+	public RuntimeEnv funcCall(RuntimeEnv runtime) {
+		System.out.println("exec funcCall " + info);
+		
+		if (runtime.funcDefs.containsKey(info)) {
+			RuntimeEnv next = new RuntimeEnv();
+			Node func = runtime.funcDefs.get(info);
+			Node statements = func.second;
 
-  }// draw
+			next.funcDefs = runtime.funcDefs;
+			next.table = new MemTable();
+			next.table.store("_retval", 0);
 
-  public static void error( String message ) {
-    System.out.println( message );
-    System.exit(1);
-  }
+			setupParams(next, func, runtime);
+			
+			if (statements != null) {
+				statements.execute(next);
+			}
+				
+			return next;
+			
+		} else {
+			System.out.println("Cannot find function " + info);
+			return null;
+		}
+	}
+	
+	//Executes the node with the global runtime environment.
+	public void execute() { execute(globalRuntime); }
+	
+	// ask this node to execute itself 
+	// (for nodes that don't return a value)
+	public void execute(RuntimeEnv runtime) {
+		
+		if (kind.equals("program")) {
+			if (second != null) {
+				// register funcdefs
+				second.execute(runtime);
+			}
+			if (first != null) {
+				// Execute original func call.
+				System.out.println("Entryfunc is " + first.info);
+				first.execute(runtime);
+				
+			}
+		} else if (kind.equals("funcDefs")) {
+			// actual definitions
+			first.execute(runtime);
+			
+			if (second != null) {
+				// next definitions
+				second.execute(runtime);
+			}
+			
+		} else if (kind.equals("funcDef")) {
+			// Registers a function to the runtime environment. 
+			System.out.println("Registering function " + info);
+			runtime.funcDefs.put(info, this);
+			
+		} else if (kind.equals("funcCall")) {
+			// Just call the function,
+			// using the current runtime to pass params...
+			funcCall(runtime);
+			
+		} else if (kind.equals("stmts")) {
+			if (first != null) {
+				// actual statement
+				first.execute(runtime);
+				if (second != null) {
+					// Next statements
+					second.execute(runtime);
+				}
+			}
+		} else if (kind.equals("return")) {
+			// Evaluate expression, set value into runtime.
+			double val = first.evaluate(runtime);
+			runtime.table.store("_retval", val);
+			
+		} else if (kind.equals("prtstr")) {
+			System.out.print(info);
+		} else if (kind.equals("prtexp")) {
+			double value = first.evaluate(runtime);
+			System.out.print(value);
+		} else if (kind.equals("nl")) {
+			System.out.print("\n");
+		} else if (kind.equals("sto")) {
+			double value = first.evaluate(runtime);
+			runtime.table.store(info, value);
+		} else {
+			error("Unknown kind of node [" + kind + "]");
+		}
 
-  // ask this node to execute itself
-  // (for nodes that don't return a value)
-   public void execute() {
+	}// execute
 
-      if ( kind.equals("stmts") ) {
-         if ( first != null ) {
-            first.execute();
-            if ( second != null ) {
-               second.execute();
-            }
-         }
-      }
+	// public double evaluate() { return evaluate(globalRuntime); }
+	// compute and return value produced by this node
+	public double evaluate(RuntimeEnv runtime) {
+		if (kind.equals("num")) {
+			return Double.parseDouble(info);
+			
+		} else if (kind.equals("funcCall")) {
+			// Call the function
+			RuntimeEnv results = funcCall(runtime);
+			if (results == null) { return 0; }
+			// Return the return value.
+			return results.table.retrieve("_retval");
+			
+		} else if (kind.equals("var")) {
+			return runtime.table.retrieve(info);
+		} else if (kind.equals("+") || kind.equals("-")) {
+			double value1 = first.evaluate(runtime);
+			double value2 = second.evaluate(runtime);
+			if (kind.equals("+")) {
+				return value1 + value2;
+			} else {
+				return value1 - value2;
+			}
+		} else if (kind.equals("*") || kind.equals("/")) {
+			double value1 = first.evaluate(runtime);
+			double value2 = second.evaluate(runtime);
+			if (kind.equals("*")) {
+				return value1 * value2;
+			} else {
+				return value1 / value2;
+			}
+		} else if (kind.equals("input")) {
+			return keys.nextDouble();
+		} else if (kind.equals("sqrt") || kind.equals("cos")
+				|| kind.equals("sin") || kind.equals("atan")) {
+			double value = first.evaluate(runtime);
 
-      else if ( kind.equals("prtstr") ) {
-         System.out.print( info );
-      }
-      
-      else if ( kind.equals("prtexp") ) {
-         double value = first.evaluate();
-         System.out.print( value );
-      }
-      
-      else if ( kind.equals("nl") ) {
-         System.out.print( "\n" );
-      }
-      
-      else if ( kind.equals("sto") ) {
-         double value = first.evaluate();
-         table.store( info, value );
-      }
-      
-      else {
-         error("Unknown kind of node [" + kind + "]");     
-      }
+			if (kind.equals("sqrt")) {
+				return Math.sqrt(value);
+			} else if (kind.equals("cos")) {
+				return Math.cos(Math.toRadians(value));
+			} else if (kind.equals("sin")) {
+				return Math.sin(Math.toRadians(value));
+			} else if (kind.equals("atan")) {
+				return Math.toDegrees(Math.atan(value));
+			} else {
+				error("unknown function name [" + kind + "]");
+				return 0;
+			}
 
-   }// execute
-    
-   // compute and return value produced by this node
-   public double evaluate() {
+		} else if (kind.equals("pow")) {
+			double value1 = first.evaluate(runtime);
+			double value2 = second.evaluate(runtime);
+			return Math.pow(value1, value2);
+		} else if (kind.equals("opp")) {
+			double value = first.evaluate(runtime);
+			return -value;
+		} else {
+			error("Unknown node kind [" + kind + "]");
+			return 0;
+		}
 
-      if ( kind.equals("num") ) {
-         return Double.parseDouble( info );
-      }
-
-      else if ( kind.equals("var") ) {
-         return table.retrieve( info );
-      }
-
-      else if ( kind.equals("+") || kind.equals("-") ) {
-         double value1 = first.evaluate();
-         double value2 = second.evaluate();
-         if ( kind.equals("+") )
-            return value1 + value2;
-         else
-            return value1 - value2;
-      }
-
-      else if ( kind.equals("*") || kind.equals("/") ) {
-         double value1 = first.evaluate();
-         double value2 = second.evaluate();
-         if ( kind.equals("*") )
-            return value1 * value2;
-         else
-            return value1 / value2;
-       }
- 
-       else if ( kind.equals("input") ) {
-          return keys.nextDouble();          
-       }
-       
-       else if ( kind.equals("sqrt") || kind.equals("cos") ||
-                 kind.equals("sin") || kind.equals("atan")    
-               ) {
-          double value = first.evaluate();
-
-          if ( kind.equals("sqrt") )
-             return Math.sqrt(value);
-          else if ( kind.equals("cos") )
-             return Math.cos( Math.toRadians( value ) );
-          else if ( kind.equals("sin") )
-             return Math.sin( Math.toRadians( value ) );
-          else if ( kind.equals("atan") )
-             return Math.toDegrees( Math.atan( value ) );
-          else {
-             error("unknown function name [" + kind + "]");
-             return 0;
-          }
-            
-       }
-       
-       else if ( kind.equals("pow") ) {
-          double value1 = first.evaluate();
-          double value2 = second.evaluate();
-          return Math.pow( value1, value2 );
-       }
-
-       else if ( kind.equals("opp") ) {
-          double value = first.evaluate();
-          return -value;
-       }
-
-       else {
-          error("Unknown node kind [" + kind + "]");
-          return 0;
-       }
-       
-   }// evaluate
+	}// evaluate
 
 }// Node
