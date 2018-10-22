@@ -1,4 +1,3 @@
-package corgi;
 
 /*
   store variable names with stored value

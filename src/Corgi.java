@@ -1,4 +1,3 @@
-package corgi;
 
 import java.io.BufferedReader;
 import java.io.StringReader;

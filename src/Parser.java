@@ -1,4 +1,3 @@
-package corgi;
 
 /*
     This class provides a recursive descent parser 

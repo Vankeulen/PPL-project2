@@ -1,4 +1,3 @@
-package corgi;
 
 import javax.swing.*;
 import javax.swing.event.*;

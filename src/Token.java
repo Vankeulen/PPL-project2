@@ -1,4 +1,3 @@
-package corgi;
 
 public class Token {
 

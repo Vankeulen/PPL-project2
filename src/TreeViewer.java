@@ -1,4 +1,3 @@
-package corgi;
 
 /*  this class allows interactive
     viewing of a tree built from

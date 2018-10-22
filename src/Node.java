@@ -1,4 +1,3 @@
-package corgi;
 
 /*  a Node holds one node of a parse tree
     with several pointers to children used

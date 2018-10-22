@@ -1,4 +1,3 @@
-package corgi;
 
 import java.util.*;
 import java.io.*;

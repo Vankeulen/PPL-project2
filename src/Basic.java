@@ -1,6 +1,5 @@
 /*  basic application to be extended
  */
-package corgi;
 
 import javax.swing.*;
 import javax.swing.event.*;
