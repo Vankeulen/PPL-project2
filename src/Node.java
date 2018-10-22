@@ -8,20 +8,20 @@ import java.io.*;
 import java.awt.*;
 
 public class Node {
-	
+
 	// Added this type to hold runtime information.
 	public static class RuntimeEnv {
 		public MemTable table = new MemTable();
 		public Map<String, Node> funcDefs = new HashMap<>();
 	}
-	
+
 	public static int count = 0;  // maintain unique id for each node
 
 	private int id;
-	
+
 	public boolean isKind(String kind) { return kind.equals(this.kind); }
 	public String getInfo() { return this.info; }
-	
+
 	private String kind;  // non-terminal or terminal category for the node
 	private String info;  // extra information about the node such as
 	// the actual identifier for an I
@@ -29,7 +29,7 @@ public class Node {
 	public Node getFirst() { return first; }
 	public Node getSecond() { return second; }
 	public Node getThird() { return third; }
-	
+
 	// references to children in the parse tree
 	private Node first, second, third;
 
@@ -172,21 +172,21 @@ public class Node {
 		System.out.println(message);
 		System.exit(1);
 	}
-	
+
 	// sets up the next environment with parameters.
-	// they are applied in order 
+	// they are applied in order
 	// between the args (first of this) and params (first of funcDef) sub nodes
-	private void setupParams(RuntimeEnv next, Node funcDef, RuntimeEnv prev){ 
+	private void setupParams(RuntimeEnv next, Node funcDef, RuntimeEnv prev){
 		Node params = funcDef.first;
 		Node args = first;
-		
+
 		while (args != null && params != null) {
 			Node arg = args.first;
 			args = args.second;
 			String param = params.info;
 			params = params.first;
 			double val = arg.evaluate(prev);
-			
+
 			System.out.println("Setting up param " + param + " = " + val);
 			next.table.store(param, val);
 		}
@@ -198,12 +198,12 @@ public class Node {
 			System.out.println("WARNING: Mismatched parameters for call of " + info + ", too few args");
 		}
 	}
-	
-	// Executes a function, returns the runtime env it used when done. 
+
+	// Executes a function, returns the runtime env it used when done.
 	// or null if the function did not exist.
 	public RuntimeEnv funcCall(RuntimeEnv runtime) {
 		System.out.println("exec funcCall " + info);
-		
+
 		if (runtime.funcDefs.containsKey(info)) {
 			RuntimeEnv next = new RuntimeEnv();
 			Node func = runtime.funcDefs.get(info);
@@ -214,26 +214,26 @@ public class Node {
 			next.table.store("_retval", 0);
 
 			setupParams(next, func, runtime);
-			
+
 			if (statements != null) {
 				statements.execute(next);
 			}
-				
+
 			return next;
-			
+
 		} else {
 			System.out.println("Cannot find function " + info);
 			return null;
 		}
 	}
-	
+
 	//Executes the node with the global runtime environment.
 	public void execute() { execute(globalRuntime); }
-	
-	// ask this node to execute itself 
+
+	// ask this node to execute itself
 	// (for nodes that don't return a value)
 	public void execute(RuntimeEnv runtime) {
-		
+
 		if (kind.equals("program")) {
 			if (second != null) {
 				// register funcdefs
@@ -243,27 +243,27 @@ public class Node {
 				// Execute original func call.
 				System.out.println("Entryfunc is " + first.info);
 				first.execute(runtime);
-				
+
 			}
 		} else if (kind.equals("funcDefs")) {
 			// actual definitions
 			first.execute(runtime);
-			
+
 			if (second != null) {
 				// next definitions
 				second.execute(runtime);
 			}
-			
+
 		} else if (kind.equals("funcDef")) {
-			// Registers a function to the runtime environment. 
+			// Registers a function to the runtime environment.
 			System.out.println("Registering function " + info);
 			runtime.funcDefs.put(info, this);
-			
+
 		} else if (kind.equals("funcCall")) {
 			// Just call the function,
 			// using the current runtime to pass params...
 			funcCall(runtime);
-			
+
 		} else if (kind.equals("stmts")) {
 			if (first != null) {
 				// actual statement
@@ -277,7 +277,7 @@ public class Node {
 			// Evaluate expression, set value into runtime.
 			double val = first.evaluate(runtime);
 			runtime.table.store("_retval", val);
-			
+
 		} else if (kind.equals("prtstr")) {
 			System.out.print(info);
 		} else if (kind.equals("prtexp")) {
@@ -299,14 +299,14 @@ public class Node {
 	public double evaluate(RuntimeEnv runtime) {
 		if (kind.equals("num")) {
 			return Double.parseDouble(info);
-			
+
 		} else if (kind.equals("funcCall")) {
 			// Call the function
 			RuntimeEnv results = funcCall(runtime);
 			if (results == null) { return 0; }
 			// Return the return value.
 			return results.table.retrieve("_retval");
-			
+
 		} else if (kind.equals("var")) {
 			return runtime.table.retrieve(info);
 		} else if (kind.equals("+") || kind.equals("-")) {
@@ -351,7 +351,12 @@ public class Node {
 		} else if (kind.equals("opp")) {
 			double value = first.evaluate(runtime);
 			return -value;
-		} else {
+		} else if (kind.equals("lt")) {
+			double val1 = first.evaluate(runtime);
+			double val2 = second.evaluate(runtime);
+			return val1 > val2 ? 1 : 0;
+		}
+		else {
 			error("Unknown node kind [" + kind + "]");
 			return 0;
 		}
