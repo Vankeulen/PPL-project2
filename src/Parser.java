@@ -106,7 +106,7 @@ public class Parser {
 
 		if (token.isKind("eof")) {
 			return new Node("stmts", first, null, null);
-		} else if (token.isKind("end")) {
+		} else if (token.isKind("end") || token.isKind("else")) {
 			// added this to handle last statement in method block
 			lex.putBackToken(token);
 			return new Node("stmts", first, null, null);
@@ -160,7 +160,22 @@ public class Parser {
 					return parseFuncCall();
 				}
 			}
-			
+			else if(varName.equals("if")){
+				lex.putBackToken(token);
+				Node expr = parseExpr();
+				Node ifStatements = parseStatements();
+
+				Token elseToken = lex.getNextToken();
+				errorCheck(elseToken, "else");
+
+				Node elseStatements = parseStatements();
+
+				Token endToken = lex.getNextToken();
+				errorCheck(endToken, "end");
+
+                return new Node("stmt", "if", ifStatements, expr, elseStatements);
+			}
+
 			
 			throw new RuntimeException("Unexpected Symbol after varname: " + token);
 			// errorCheck(token, "single", "=");
@@ -185,10 +200,13 @@ public class Parser {
 				|| token.matches("single", "-")) {
 			Node second = parseExpr();
 			return new Node(token.getDetails(), first, second, null);
-		} else {// is just one term
-			lex.putBackToken(token);
-			return first;
 		}
+		if(token.matches("single","(")){
+			return parseArgs();
+		}
+		// is just one term
+		lex.putBackToken(token);
+		return first;
 
 	}// <expr>
 

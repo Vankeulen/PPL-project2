@@ -160,6 +160,9 @@ public class Lexer {
 					// added return keyword
 					return new Token("return", "");
 
+				} else if(data.equals("else") ){
+					return new Token("else", "");
+
 				} else {// is just a variable
 					return new Token("var", data);
 				}
