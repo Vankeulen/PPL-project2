@@ -1,6 +1,7 @@
 
 import java.io.BufferedReader;
 import java.io.StringReader;
+// Practice Problem 3
 
 public class PathTrip {
 	public static void main(String[] args) {
@@ -41,6 +42,7 @@ public class PathTrip {
 		}
 		
 		public Node parseTrip() {
+			// \/ part 1
 			// rule is <path> <trip>?
 			Node path = parsePath();
 			
@@ -52,9 +54,11 @@ public class PathTrip {
 			}
 			
 			return new Node("t", path, null, null);
+			// /\ part 1
 		}
 		
 		public Node parsePath() {
+			// \/ part 2
 			Token t = lex.getNextToken();
 			Node n = null, a = null, trip = null;
 			if (t.isKind("var")) {
@@ -86,6 +90,7 @@ public class PathTrip {
 			}
 				
 			return new Node("p", n, a, trip);
+			// /\ part 2
 		}
 		
 		
