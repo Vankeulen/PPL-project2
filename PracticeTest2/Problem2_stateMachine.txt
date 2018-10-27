@@ -1,0 +1,46 @@
+// Practice test 2
+// Long comments divide 'answer' from 'question'
+///////////////////////////////////////////////////////
+int state = 1;
+int sym;
+boolean done = false;
+
+do {
+	sym = getNextSymbol();
+	
+	if (state == 1) {
+		
+		if (sym == 'A') {
+			state = 2;
+//////////////////////////////////////////////////////
+// Continue writing code \/
+		} else if (sym == 'D') {
+			state = 3;
+		} else { 
+			state = -1; // error
+		}
+		
+	} else if (state == 2) {
+		
+		if (sym == 'B') {
+			state = 2;
+		} else if (sym == 'C') {
+			state = 3;
+		} else {
+			state = -1; // error
+		}
+		
+	} else if (state == 3) {
+		
+		if (sym == 'E') {
+			state = 1;
+		} else {
+			state = -1; // error
+		}
+	
+// Continue writing code /\
+//////////////////////////////////////////////////////
+	} else {
+		error("Unknown State " + state + " in lexer!");
+	}
+} while (!done);
