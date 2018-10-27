@@ -68,8 +68,10 @@ public class Lexer {
 						state = 5;
 					} else if (sym == '\"') {
 						state = 6;
-					} else if (sym == '+' || sym == '-' || sym == '*'
-							|| sym == '/' || sym == '(' || sym == ')'
+					} else if (sym == '+' || sym == '-' 
+							|| sym == '*' || sym == '/' 
+							|| sym == '(' || sym == ')'
+							|| sym == '[' || sym == ']'
 							|| sym == ',' || sym == '=') {
 						data += (char) sym;
 						state = 8;

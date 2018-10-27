@@ -1,0 +1,93 @@
+
+import java.io.BufferedReader;
+import java.io.StringReader;
+
+public class PathTrip {
+	public static void main(String[] args) {
+		String programInput = "7 [ D 3 [ L M ] ] 5 R".toLowerCase();
+		Lexer lex = new Lexer(new BufferedReader(new StringReader(programInput)));
+		Token t = lex.getNextToken();
+		
+		while (true) {
+			if (t == null || t.isKind("eof")) {
+				break;
+			}
+			t = lex.getNextToken();
+		}
+		
+		lex = new Lexer(new BufferedReader(new StringReader(programInput)));
+		Parser parser = new Parser(lex);
+		try {
+			Node root = parser.parseTrip();
+			TreeViewer it = new TreeViewer("tripPath", 0, 0, 1600, 1200, root);
+			// root.execute();
+		} catch (Exception e) {
+			System.out.println("");
+			System.out.println(e);
+			for (StackTraceElement el : e.getStackTrace()) {
+				System.out.println(el);
+
+			}
+			// e.printStackTrace();
+		}
+		
+	}
+	
+	public static class Parser {
+		
+		private Lexer lex;
+		public Parser(Lexer lex) {
+			this.lex = lex;
+		}
+		
+		public Node parseTrip() {
+			// rule is <path> <trip>?
+			Node path = parsePath();
+			
+			Token t = lex.getNextToken();
+			lex.putBackToken(t);
+			if (t.isKind("num") || t.isKind("var")) {
+				Node trip = parseTrip();
+				return new Node("t", path, trip, null);
+			}
+			
+			return new Node("t", path, null, null);
+		}
+		
+		public Node parsePath() {
+			Token t = lex.getNextToken();
+			Node n = null, a = null, trip = null;
+			if (t.isKind("var")) {
+				a = new Node("a", t.getDetails(), null, null, null);
+				return new Node("p", n, a, trip);
+			}
+			
+			if (!t.isKind("num")) {
+				throw new RuntimeException("Invalid number, " + t);
+			}
+			
+			n = new Node("n", t.getDetails(), null, null, null);
+			
+			Token t2 = lex.getNextToken();
+			if (t2.isKind("var")) {
+				a = new Node("a", t2.getDetails(), null, null, null);
+				return new Node("p", n, a, trip);
+			}
+			
+			if (!t2.getDetails().equals("[")) {
+				throw new RuntimeException("expected open brace, had " + t2);
+			}
+			
+			trip = parseTrip();
+			
+			Token t3 = lex.getNextToken();
+			if (!t3.getDetails().equals("]")) {
+				throw new RuntimeException("expected close brace, had " + t3);
+			}
+				
+			return new Node("p", n, a, trip);
+		}
+		
+		
+	}
+}
