@@ -174,38 +174,50 @@ public class Calculator {
 			}
 		}
 		
-		/** */
+		/** Represents entire statemachine in states 1-9 */
 		private Token getNextToken() {
+			// Entry into function is state '1'
+			
 			if (i >= input.length()) {
+				// State '9', end of file.
 				return new Token("OutOfCharacters", "");
 			}
 			
+			// Peek at token, but don't consume it.
 			char sym = input.charAt(i);
 			
+			// Stay in state 1. (re-enter state machine)
 			if (sym == '\r' || sym == '\n' || sym == '\t' || sym == ' ') {
 				i++;
 				return new Token("Whitespace", ""+sym);
 			}
 			
+			// State 2, names
 			if ('a' <= sym && sym <= 'z') {
 				return new Token("Name", readName());
 			}
 			
+			// State 3, 4 and 5, numbers
 			if (digit(sym) || sym == '.') {
 				return new Token("Number", readNumber());
 			}
 			
+			// State 6/7, strings
 			if (sym == '\"') {
 				return new Token("String", readString());
 			}
 			
+			// State 8, operators
 			if (operator(sym)) {
 				i++;
 				return new Token("Operator", ""+sym);
 			}
 			
+			// Unknown state error.
 			return new Token("UnknownCharacter", ""+sym);
 		}
+		
+		// State 2....
 		private String readName() {
 			StringBuilder name = new StringBuilder();
 			//String name = "";
@@ -227,6 +239,7 @@ public class Calculator {
 			}
 		}
 		
+		// State 6/7...
 		private String readString() {
 			StringBuilder string = new StringBuilder();
 			char sym = input.charAt(i);
@@ -255,6 +268,7 @@ public class Calculator {
 			throw new RuntimeException("Trying to read a string, but no quotes are around!");
 		}
 		
+		// States 3/4/5, numbers
 		private String readNumber() {
 			StringBuilder number = new StringBuilder();
 			char sym = input.charAt(i);
@@ -283,6 +297,7 @@ public class Calculator {
 		}
 		
 	}
+	
 	// Logic to run a calculator program tree...
 	public static class Runner {
 		public Map<String, Double> values;
