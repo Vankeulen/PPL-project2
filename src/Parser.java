@@ -58,7 +58,7 @@ public class Parser {
 		
 		Token varCheck = lex.getNextToken();
 		if (!varCheck.isKind("var")) {
-			throw new RuntimeException("Function definitions must have names");
+			throw new RuntimeException("Function definitions must have a name after 'def'");
 		}
 		
 		Token openParenCheck = lex.getNextToken();
