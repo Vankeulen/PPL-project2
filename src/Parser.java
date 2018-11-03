@@ -106,7 +106,7 @@ public class Parser {
 
 		if (token.isKind("eof")) {
 			return new Node("stmts", first, null, null);
-		} else if (token.isKind("end")) {
+		} else if (token.isKind("end") || token.isKind("else")) {
 			// added this to handle last statement in method block
 			lex.putBackToken(token);
 			return new Node("stmts", first, null, null);
@@ -139,6 +139,9 @@ public class Parser {
 			// ---------------->>>  newline
 		} else if (token.isKind("newline")) {
 			return new Node("nl", null, null, null);
+		} else if (token.isKind("if")) {
+			lex.putBackToken(token);
+			return parseIfStatement();
 		} else if (token.isKind("return")) {
 			// Added return statement 
 			return new Node("return", parseExpr(), null, null);
@@ -173,6 +176,42 @@ public class Parser {
 
 	}// <statement>
 
+	private Node parseIfStatement() {
+		// rule is
+		// if <expr> <statements>? else <statements>? end
+		Token ifCheck = lex.getNextToken();
+		
+		if (!ifCheck.isKind("if")) { 
+			throw new RuntimeException("If statments must start with an 'if' token.");
+		}
+		
+		Node condition = parseExpr();
+		Node statementsTrue = null, statementsFalse = null;
+		
+		Token elseCheck = lex.getNextToken();
+		if (!elseCheck.isKind("else")) {
+			lex.putBackToken(elseCheck);
+			statementsTrue = parseStatements();
+			elseCheck = lex.getNextToken();
+			if (!elseCheck.isKind("else")) {
+				throw new RuntimeException("If statments must contain two blocks of statements separated by an 'else' token.");
+			}
+		}
+		
+		Token endCheck = lex.getNextToken();
+		if (!endCheck.isKind("end")) {
+			lex.putBackToken(endCheck);
+			statementsFalse = parseStatements();
+			
+			endCheck = lex.getNextToken();
+			if (!endCheck.isKind("end")) {
+				throw new RuntimeException("If statments must end with an 'end' token.");
+			}
+		}
+		
+		return new Node("if", condition, statementsTrue, statementsFalse);
+	} // <if statement>
+	
 	private Node parseExpr() {
 		System.out.println("-----> parsing <expr>");
 

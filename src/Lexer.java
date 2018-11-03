@@ -161,7 +161,12 @@ public class Lexer {
 				} else if (data.equals("return")) {
 					// added return keyword
 					return new Token("return", "");
-
+				} else if (data.equals("if")) {
+					// added if keyword
+					return new Token("if", "");
+				} else if (data.equals("else")) {
+					// added else keyword
+					return new Token("else", "");
 				} else {// is just a variable
 					return new Token("var", data);
 				}

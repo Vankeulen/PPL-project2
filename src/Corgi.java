@@ -6,16 +6,15 @@ import java.util.Scanner;
 public class Corgi {
 
 	public static void main(String[] args) throws Exception {
-
 		//System.out.print("Enter name of Corgi program file: ");
 		 String programInput = "main()\n" +
 				 "\n" +
 				 "def fact( n )\n" +
 				 "\n" +
-				 "   if lt(n 1) \n" +
+				 "   if lt(n, 1) \n" +
 				 "      return 1\n" +
 				 "   else\n" +
-				 "      temp = fact( n-1 )\n" +
+				 "      temp = fact( n - 1 )\n" +
 				 "      return n * temp\n" +
 				 "   end\n" +
 				 "\n" +
@@ -23,12 +22,39 @@ public class Corgi {
 				 "\n" +
 				 "def main()\n" +
 				 "\n" +
-				 "  \"enter n: \"\n" +
+				 "  print \"enter n: \"\n" +
 				 "  n = input()\n" +
 				 "  print( fact(n) )\n" +
 				 "\n" +
 				 "end\n";
-
+		 
+		String testProgram = "main()\n"
+				+ "def main()\n"
+				+ "print(eq(0, 0)) print \" \" "
+				+ "print(eq(1, 1)) print \" \" "
+				+ "print(eq(0, 1)) print \" \" "
+				+ "print(eq(.1+.2, .3)) print \" \" "
+				+ " newline "
+				+ "print(le(0, 1)) print \" \" "
+				+ "print(le(1, 1)) print \" \" "
+				+ " newline "
+				+ "print(lt(0, 1)) print \" \" "
+				+ "print(lt(1, 1)) print \" \" "
+				+ " newline "
+				+ "print(not(1)) print \" \" "
+				+ "print(not(0)) print \" \" "
+				+ " newline "
+				+ "print(retTest()) print \" \" "
+				+ " newline "
+				+ "\n"
+				+ "end\n"
+				+ "\n"
+				+ "def retTest()\n"
+				+ "return 5\n"
+				+ "return 6\n"
+				+ "end\n";
+		// i++
+		// ++i
 		/* String programInput = "main()\n" +
 				"\n" +
 				"def main()\n" +
@@ -53,7 +79,7 @@ public class Corgi {
 		String name = keys.nextLine();
 		//*/
 
-		Lexer lex = new Lexer(new BufferedReader( new StringReader(programInput) ) );
+		Lexer lex = new Lexer(new BufferedReader( new StringReader(testProgram) ) );
 		
 		Parser parser = new Parser(lex);
 

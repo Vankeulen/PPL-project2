@@ -10,9 +10,12 @@ import java.awt.*;
 public class Node {
 
 	// Added this type to hold runtime information.
+	
+	
 	public static class RuntimeEnv {
 		public MemTable table = new MemTable();
 		public Map<String, Node> funcDefs = new HashMap<>();
+		public boolean returning = false;
 	}
 
 	public static int count = 0;  // maintain unique id for each node
@@ -268,15 +271,26 @@ public class Node {
 			if (first != null) {
 				// actual statement
 				first.execute(runtime);
-				if (second != null) {
+				
+				if (!runtime.returning && second != null) {
 					// Next statements
 					second.execute(runtime);
 				}
 			}
+		} else if (kind.equals("if")) {
+			double value = first.evaluate(runtime);
+			
+			if (value != 0) {
+				second.execute(runtime);
+			} else {
+				third.execute(runtime);
+			}
+			
 		} else if (kind.equals("return")) {
 			// Evaluate expression, set value into runtime.
 			double val = first.evaluate(runtime);
 			runtime.table.store("_retval", val);
+			runtime.returning = true;
 
 		} else if (kind.equals("prtstr")) {
 			System.out.print(info);
@@ -354,7 +368,30 @@ public class Node {
 		} else if (kind.equals("lt")) {
 			double val1 = first.evaluate(runtime);
 			double val2 = second.evaluate(runtime);
-			return val1 > val2 ? 1 : 0;
+			return val1 < val2 ? 1 : 0;
+		} else if (kind.equals("le")) {
+			double val1 = first.evaluate(runtime);
+			double val2 = second.evaluate(runtime);
+			return val1 <= val2 ? 1 : 0;
+		} else if (kind.equals("eq")) {
+			double val1 = first.evaluate(runtime);
+			double val2 = second.evaluate(runtime);
+			return val1 == val2 ? 1 : 0;
+		} else if (kind.equals("ne")) {
+			double val1 = first.evaluate(runtime);
+			double val2 = second.evaluate(runtime);
+			return val1 != val2 ? 1 : 0;
+		} else if (kind.equals("or")) {
+			double val1 = first.evaluate(runtime);
+			double val2 = second.evaluate(runtime);
+			return (val1 != 0) ? 1 : ((val2 != 0) ? 1 : 0);
+		} else if (kind.equals("and")) {
+			double val1 = first.evaluate(runtime);
+			double val2 = second.evaluate(runtime);
+			return (val1 != 0 && val2 != 0) ? 1 : 0;
+		} else if (kind.equals("not")) {
+			double val1 = first.evaluate(runtime);
+			return (val1 != 0) ? 0 : 1;
 		}
 		else {
 			error("Unknown node kind [" + kind + "]");
