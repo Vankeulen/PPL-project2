@@ -22,7 +22,7 @@ public class Corgi {
 				 "\n" +
 				 "def main()\n" +
 				 "\n" +
-				 "  print \"enter n: \"\n" +
+				 "  \"enter n: \"\n" +
 				 "  n = input()\n" +
 				 "  print( fact(n) )\n" +
 				 "\n" +
@@ -79,7 +79,7 @@ public class Corgi {
 		String name = keys.nextLine();
 		//*/
 
-		Lexer lex = new Lexer(new BufferedReader( new StringReader(testProgram) ) );
+		Lexer lex = new Lexer(new BufferedReader( new StringReader(programInput) ) );
 		
 		Parser parser = new Parser(lex);
 

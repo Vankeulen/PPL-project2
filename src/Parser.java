@@ -124,7 +124,10 @@ public class Parser {
 		Token token = lex.getNextToken();
 
 		// ---------------->>>  print <string>  or   print <expr>
-		if (token.isKind("print")) {
+		if (token.isKind("string")) {// <string> just prints the string
+			return new Node("prtstr", token.getDetails(), null, null, null);
+		
+		} else if (token.isKind("print")) {
 			token = lex.getNextToken();
 
 			if (token.isKind("string")) {// print <string>
