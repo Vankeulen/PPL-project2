@@ -272,12 +272,15 @@ public class Node {
 				// actual statement
 				first.execute(runtime);
 				
+				// honor early return
 				if (!runtime.returning && second != null) {
 					// Next statements
 					second.execute(runtime);
 				}
 			}
 		} else if (kind.equals("if")) {
+			
+			// branching logic, yay
 			double value = first.evaluate(runtime);
 			
 			if (value != 0) {
