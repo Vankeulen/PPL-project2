@@ -44,11 +44,14 @@ public class PathTrip {
 		public Node parseTrip() {
 			// \/ part 1
 			// rule is <path> <trip>?
+
+            // <trip> -> <path>
 			Node path = parsePath();
-			
-			Token t = lex.getNextToken();
-			lex.putBackToken(t);
-			if (t.isKind("num") || t.isKind("var")) {
+
+            Token t = lex.getNextToken();
+            lex.putBackToken(t);
+            // <trip> -> <path> <trip>
+            if (t.isKind("num") || t.isKind("var")) {
 				Node trip = parseTrip();
 				return new Node("t", path, trip, null);
 			}
@@ -59,8 +62,10 @@ public class PathTrip {
 		
 		public Node parsePath() {
 			// \/ part 2
+			// rule is <action> | <number> <action> | <number> [ <trip> ]
 			Token t = lex.getNextToken();
 			Node n = null, a = null, trip = null;
+			//<path> -> A
 			if (t.isKind("var")) {
 				a = new Node("a", t.getDetails(), null, null, null);
 				return new Node("p", n, a, trip);
@@ -69,15 +74,17 @@ public class PathTrip {
 			if (!t.isKind("num")) {
 				throw new RuntimeException("Invalid number, " + t);
 			}
-			
+
+			//N A | N [ <trip> ]
 			n = new Node("n", t.getDetails(), null, null, null);
-			
+
 			Token t2 = lex.getNextToken();
+			// N A
 			if (t2.isKind("var")) {
 				a = new Node("a", t2.getDetails(), null, null, null);
 				return new Node("p", n, a, trip);
 			}
-			
+			// N [ <trip> ]
 			if (!t2.getDetails().equals("[")) {
 				throw new RuntimeException("expected open brace, had " + t2);
 			}
