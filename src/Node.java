@@ -345,7 +345,8 @@ public class Node {
 		} else if (kind.equals("input")) {
 			return keys.nextDouble();
 		} else if (kind.equals("sqrt") || kind.equals("cos")
-				|| kind.equals("sin") || kind.equals("atan")) {
+				|| kind.equals("sin") || kind.equals("atan")
+				|| kind.equals("round") || kind.equals("trunc")) {
 			double value = first.evaluate(runtime);
 
 			if (kind.equals("sqrt")) {
@@ -356,6 +357,10 @@ public class Node {
 				return Math.sin(Math.toRadians(value));
 			} else if (kind.equals("atan")) {
 				return Math.toDegrees(Math.atan(value));
+			} else if (kind.equals("round")) {
+				return Math.round(value);
+			} else if (kind.equals("trunc")) {
+				return (int) value;
 			} else {
 				error("unknown function name [" + kind + "]");
 				return 0;
