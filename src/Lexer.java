@@ -57,6 +57,27 @@ public class Lexer {
 					if (sym == '\r' || sym == '\n' || sym == '\t'
 							|| sym == ' ') {// whitespace
 						state = 1;
+					} else if (sym == '/') {
+						int temp = sym;
+						sym = getNextSymbol();
+						if (sym == '*') {
+							boolean fin = false;
+							do {
+								sym = getNextSymbol();
+								if (sym == '*') {
+									sym = getNextSymbol();
+									if (sym == '/') {
+										fin = true;
+									}
+								}
+							} while (!fin);
+						} else {
+							putBackSymbol(sym);
+							sym = '/';
+							state = 8;
+							data += (char) sym;
+							done = true;
+						}
 					} else if ('a' <= sym && sym <= 'z') {// lowercase
 						data += (char) sym;
 						state = 2;
@@ -120,13 +141,17 @@ public class Lexer {
 								+ sym + " in state " + state);
 					}
 				} else if (state == 6) {
-					if ((' ' <= sym && sym <= '~') && sym != '\"') {
-						data += (char) sym;
-						state = 6;
-					} else if (sym == '\"') {
-						state = 7;
-						done = true;
-					}
+                    if ((' ' <= sym && sym <= '~') && sym != '\"') {
+                        data += (char) sym;
+                        state = 6;
+                    } else if (sym == '\"') {
+                        state = 7;
+                        done = true;
+                    }
+                } else if (state == 10) {
+				    if (getNextSymbol() == 1) {
+
+                    }
 				}
 
 				// note: states 7, 8, and 9 are accepting states with
