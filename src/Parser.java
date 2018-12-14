@@ -1,6 +1,6 @@
 
 /*
-    This class provides a recursive descent parser 
+    This class provides a recursive descent parser
     for Corgi (a simple calculator language),
     creating a parse tree which can be interpreted
     to simulate execution of a Corgi program
@@ -18,60 +18,60 @@ public class Parser {
 
 	public Node parseProgram() {
 		// rule is <funcCall> <funcDefs>?
-		
+
 		Node funcCall = parseFuncCall();
-		
+
 		Token next = lex.getNextToken();
 		if (next.isKind("def")) {
 			lex.putBackToken(next);
 			return new Node("program", "", funcCall, parseFuncDefs(), null);
 		}
-		
+
 		return new Node("program", "", funcCall, null, null);
 	}
-	
-	
+
+
 	// Added this whole method to parse all func defs
 	private Node parseFuncDefs() {
 		// rule is <funcDef> <funcDefs>?
-		
+
 		Node funcDef = parseFuncDef();
-		
+
 		Token defCheck = lex.getNextToken();
 		if (defCheck.isKind("def")) {
 			lex.putBackToken(defCheck);
 			Node moreDefs = parseFuncDefs();
 			return new Node("funcDefs", funcDef, moreDefs, null);
 		}
-		
+
 		return new Node("funcDefs", funcDef, null, null);
 	}
-	
+
 	// Added this whole method to parse individual func defs
 	private Node parseFuncDef() {
 		// rule is def <var> ( <params>? ) <statements>? end
-		
+
 		Token defCheck = lex.getNextToken();
 		if (!defCheck.isKind("def")) {
 			throw new RuntimeException("Trying to parse a function def, but no def keyword!");
 		}
-		
+
 		Token varCheck = lex.getNextToken();
 		if (!varCheck.isKind("var")) {
 			throw new RuntimeException("Function definitions must have a name after 'def'");
 		}
-		
+
 		Token openParenCheck = lex.getNextToken();
 		if (!openParenCheck.isKind("single") || !openParenCheck.getDetails().equals("(")) {
 			throw new RuntimeException("Function definitions must have a params list");
 		}
-		
+
 		Node params = null;
 		Node statements = null;
-		
+
 		Token closeParenCheck = lex.getNextToken();
 		if (!closeParenCheck.isKind("single") || !closeParenCheck.getDetails().equals(")")) {
-			
+
 			lex.putBackToken(closeParenCheck);
 			params = parseParams();
 			closeParenCheck = lex.getNextToken();
@@ -79,10 +79,10 @@ public class Parser {
 				throw new RuntimeException("Unexpected token in parameters " + closeParenCheck);
 			}
 		}
-			
+
 		Token endCheck = lex.getNextToken();
 		if (!endCheck.isKind("end")) {
-			
+
 			lex.putBackToken(endCheck);
 			statements = parseStatements();
 			endCheck = lex.getNextToken();
@@ -90,12 +90,12 @@ public class Parser {
 				throw new RuntimeException("Unexpected token, function defs must end with 'end'!");
 			}
 		}
-			
+
 		return new Node("funcDef", varCheck.getDetails(), params, statements, null);
-		
-		
+
+
 	} // </funcDef>
-	
+
 	private Node parseStatements() {
 		System.out.println("-----> parsing <statements>:");
 
@@ -110,7 +110,7 @@ public class Parser {
 			// added this to handle last statement in method block
 			lex.putBackToken(token);
 			return new Node("stmts", first, null, null);
-			
+
 		} else {
 			lex.putBackToken(token);
 			Node second = parseStatements();
@@ -126,7 +126,7 @@ public class Parser {
 		// ---------------->>>  print <string>  or   print <expr>
 		if (token.isKind("string")) {// <string> just prints the string
 			return new Node("prtstr", token.getDetails(), null, null, null);
-		
+
 		} else if (token.isKind("print")) {
 			token = lex.getNextToken();
 
@@ -140,34 +140,39 @@ public class Parser {
 				return new Node("prtexp", first, null, null);
 			}
 			// ---------------->>>  newline
-		} else if (token.isKind("newline")) {
+		} else if (token.isKind("nl")) {
+			token = lex.getNextToken();
+			errorCheck(token, "single", "(");
+			token = lex.getNextToken();
+			errorCheck(token, "single", ")");
+
 			return new Node("nl", null, null, null);
 		} else if (token.isKind("if")) {
 			lex.putBackToken(token);
 			return parseIfStatement();
 		} else if (token.isKind("return")) {
-			// Added return statement 
+			// Added return statement
 			return new Node("return", parseExpr(), null, null);
 		} else if (token.isKind("var")) {
 			// --------------->>>   <var> = <expr>
 			String varName = token.getDetails();
 			Token nameToken = token;
 			token = lex.getNextToken();
-			
+
 			if (token.isKind("single")) {
 				if (token.getDetails().equals("=")) {
 					Node first = parseExpr();
 					return new Node("sto", varName, first, null, null);
 				}
-				
+
 				if (token.getDetails().equals("(")) {
 					lex.putBackToken(token);
 					lex.putBackToken(nameToken);
 					return parseFuncCall();
 				}
 			}
-			
-			
+
+
 			throw new RuntimeException("Unexpected Symbol after varname: " + token);
 			// errorCheck(token, "single", "=");
 		} else {
@@ -183,14 +188,14 @@ public class Parser {
 		// rule is
 		// if <expr> <statements>? else <statements>? end
 		Token ifCheck = lex.getNextToken();
-		
-		if (!ifCheck.isKind("if")) { 
+
+		if (!ifCheck.isKind("if")) {
 			throw new RuntimeException("If statments must start with an 'if' token.");
 		}
-		
+
 		Node condition = parseExpr();
 		Node statementsTrue = null, statementsFalse = null;
-		
+
 		Token elseCheck = lex.getNextToken();
 		if (!elseCheck.isKind("else")) {
 			lex.putBackToken(elseCheck);
@@ -200,21 +205,21 @@ public class Parser {
 				throw new RuntimeException("If statments must contain two blocks of statements separated by an 'else' token.");
 			}
 		}
-		
+
 		Token endCheck = lex.getNextToken();
 		if (!endCheck.isKind("end")) {
 			lex.putBackToken(endCheck);
 			statementsFalse = parseStatements();
-			
+
 			endCheck = lex.getNextToken();
 			if (!endCheck.isKind("end")) {
 				throw new RuntimeException("If statments must end with an 'end' token.");
 			}
 		}
-		
+
 		return new Node("if", condition, statementsTrue, statementsFalse);
 	} // <if statement>
-	
+
 	private Node parseExpr() {
 		System.out.println("-----> parsing <expr>");
 
@@ -252,13 +257,13 @@ public class Parser {
 		}
 
 	}// <term>
-	
-	
+
+
 	private Node parseParams() {
 		// rule is <var> <params>?
 		Token token = lex.getNextToken();
 		if (!token.isKind("var")) { throw new RuntimeException("Unexpected token " + token + " in parameters"); }
-		
+
 		Token commaCheck = lex.getNextToken();
 		if (commaCheck.isKind("single") && commaCheck.getDetails().equals(",")) {
 			Node nextParams = parseParams();
@@ -267,7 +272,7 @@ public class Parser {
 		lex.putBackToken(commaCheck);
 		return new Node("params", token.getDetails(), null, null, null);
 	}
-	
+
 	private Node parseArgs() {
 		// rule is <expr> <args>?
 		Node expr = parseExpr();
@@ -279,17 +284,17 @@ public class Parser {
 		lex.putBackToken(commaCheck);
 		return new Node("args", expr, null, null);
 	}
-	
+
 	private Node parseFuncCall() {
-		// rule is <var> ( <args>? ) 
+		// rule is <var> ( <args>? )
 		Token token = lex.getNextToken();
 		if (!token.isKind("var")) { throw new RuntimeException("funcCall must start with a varname"); }
-		
+
 		Token openParen = lex.getNextToken();
 		if (!openParen.isKind("single") || !openParen.getDetails().equals("(")) {
 			throw new RuntimeException("Expeted open paren at func call, found " + openParen);
 		}
-		
+
 		Token checkEndParen = lex.getNextToken();
 		if (checkEndParen.isKind("single") && checkEndParen.getDetails().equals(")")) {
 			return new Node("funcCall", token.getDetails(), null, null, null);
@@ -305,9 +310,9 @@ public class Parser {
 		} else {
 			throw new RuntimeException("Mismatched parens");
 		}
-				
+
 	}
-	
+
 	private Node parseFactor() {
 		System.out.println("-----> parsing <factor>");
 
@@ -316,19 +321,19 @@ public class Parser {
 		if (token.isKind("num")) {
 			return new Node("num", token.getDetails(), null, null, null);
 		} else if (token.isKind("var")) {
-			
+
 			Token checkParen = lex.getNextToken();
 			if (checkParen.isKind("single") && checkParen.getDetails().equals("(")){
 				lex.putBackToken(checkParen);
 				lex.putBackToken(token);
 				return parseFuncCall();
-				
-				
+
+
 			} else {
 				lex.putBackToken(checkParen);
 				return new Node("var", token.getDetails(), null, null, null);
 			}
-			
+
 		} else if (token.matches("single", "(")) {
 			Node first = parseExpr();
 			token = lex.getNextToken();

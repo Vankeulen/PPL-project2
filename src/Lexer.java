@@ -68,8 +68,8 @@ public class Lexer {
 						state = 5;
 					} else if (sym == '\"') {
 						state = 6;
-					} else if (sym == '+' || sym == '-' 
-							|| sym == '*' || sym == '/' 
+					} else if (sym == '+' || sym == '-'
+							|| sym == '*' || sym == '/'
 							|| sym == '(' || sym == ')'
 							|| sym == '[' || sym == ']'
 							|| sym == ',' || sym == '=') {
@@ -152,7 +152,9 @@ public class Lexer {
 					return new Token("print", "");
 				} else if (data.equals("newline")) {
 					return new Token("newline", "");
-				} else if (data.equals("def")) {
+				} else if (data.equals("nl")) {
+					return new Token("nl", "");
+				}else if (data.equals("def")) {
 					// added def keyword
 					return new Token("def", "");
 				} else if (data.equals("end")) {
