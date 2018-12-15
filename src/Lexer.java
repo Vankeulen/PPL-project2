@@ -148,10 +148,6 @@ public class Lexer {
                         state = 7;
                         done = true;
                     }
-                } else if (state == 10) {
-				    if (getNextSymbol() == 1) {
-
-                    }
 				}
 
 				// note: states 7, 8, and 9 are accepting states with
